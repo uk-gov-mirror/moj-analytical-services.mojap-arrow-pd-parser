@@ -8,15 +8,15 @@ If you dont really care whether the integer is Int8, Int16 but would just rather
 
 You have a csv file
 
-'''
+```bash
 my_data.csv
-'''
+```
 
 and you want to load it into a pandas dataframe using the default data type mapping
 
-'''
+```python
 my_pandas_df = pa_read_csv_to_pandas('my_data.csv')
-'''
+```
 
 and that is it. 
 
