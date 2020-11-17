@@ -11,7 +11,7 @@ def generate_type_mapper(
 ):
     tm = {}
     if pd_boolean:
-        bool_map = {pa.bool_(): pd.BooleanDtype}
+        bool_map = {pa.bool_(): pd.BooleanDtype()}
         tm = {**tm, **bool_map}
     if pd_string:
         string_map = {pa.string(): pd.StringDtype()}
@@ -77,9 +77,9 @@ def arrow_to_pandas(
 
         pd_boolean (bool, optional): converts bools to the new pandas BooleanDtype.
         Otherwise will convert to bool (if not nullable) and object of (True, False, None) if nulls exist. Defaults to True.
-        
+
         pd_integer (bool, optional): [description]. Defaults to True.
-        
+
         pd_string (bool, optional): [description]. Defaults to True.
 
         pd_date_type (str, optional): Can be either datetime_object, pd_timestamp or pd_period. Defaults to datetime_object.
