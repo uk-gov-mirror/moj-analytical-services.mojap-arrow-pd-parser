@@ -1,6 +1,9 @@
 import numpy as np
 import pyarrow as pa
 import pandas as pd
+from arrow_pd_parser.custom_types import boolObjectDtype
+
+
 
 
 def generate_type_mapper(
@@ -8,7 +11,7 @@ def generate_type_mapper(
 ):
     tm = {}
     if pd_boolean:
-        bool_map = {pa.bool_(): "boolean"}
+        bool_map = {pa.bool_(): pd.BooleanDtype}
         tm = {**tm, **bool_map}
     if pd_string:
         string_map = {pa.string(): pd.StringDtype()}
