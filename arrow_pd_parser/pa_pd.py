@@ -13,6 +13,9 @@ def generate_type_mapper(
     if pd_boolean:
         bool_map = {pa.bool_(): pd.BooleanDtype()}
         tm = {**tm, **bool_map}
+    else:
+        bool_map = {pa.bool_(): boolObjectDtype()}
+        tm = {**tm, **bool_map}
     if pd_string:
         string_map = {pa.string(): pd.StringDtype()}
         tm = {**tm, **string_map}
