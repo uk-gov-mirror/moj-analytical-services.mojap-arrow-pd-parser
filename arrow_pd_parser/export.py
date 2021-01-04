@@ -7,16 +7,25 @@ from typing import Union, IO
 def conform_copy(df: pd.DataFrame, schema: pa.Schema):
     """Make a copy of a dataframe with its columns adjusted to match a schema.
 
-    Args:
+    Arguments:
         df (pd.DataFrame): a pandas dataframe
-        schema (pa.Schema): a pyarrow schema that matches the dataframe
+        schema (pa.Schema): a pyarrow schema whose columns match the dataframe
+
+    Returns:
+        Copy of the original dataframe with data types adjusted to match schema.
     """
     new = df.copy()
     for col in new.columns:
+        # DATE
         if schema.field(col).type in [pa.date32(), pa.date64()]:
-            new[col] = pd.to_datetime(new[col]).dt.strftime("%Y-%m-%d")
+            if new[col].dtype == pd.PeriodDtype("ms"):
+                new[col] = new[col].dt.strftime("%Y-%m-%d")
+            else:
+                new[col] = pd.to_datetime(new[col]).dt.strftime("%Y-%m-%d")
         elif schema.field(col).type == pa.timestamp("s"):
             new[col] = pd.to_datetime(new[col]).dt.strftime("%Y-%m-%d %H:%M:%S")
+
+        # DATETIME
         elif schema.field(col).type == pa.timestamp("ms"):
             # Truncates microseconds rather than rounding - acceptable error?
             new[col] = (
@@ -31,6 +40,17 @@ def conform_copy(df: pd.DataFrame, schema: pa.Schema):
             new[col] = pd.to_datetime(new[col]).dt.strftime(
                 "%Y-%m-%d %H:%M:%S.%f"
             ) + new[col].dt.nanosecond.fillna(0).astype(int).astype(str).str.zfill(3)
+        elif schema.field(col).type in [
+            pa.int8(),
+            pa.int16(),
+            pa.int32(),
+            pa.int64(),
+            pa.uint8(),
+            pa.uint16(),
+            pa.uint32(),
+            pa.uint64(),
+        ]:
+            new[col] = new[col].astype(pd.Int64Dtype())
     return new
 
 
@@ -50,7 +70,6 @@ def pd_to_csv(
         index (bool): standard pandas .to_csv index argument, but defaulting to False
         **kwargs: any other keyword arguments to pass to pandas .to_csv
     """
-    # possibly move the 'if schema' stuff into a conform function
     if schema:
         new = conform_copy(df, schema)
     else:
@@ -63,7 +82,6 @@ def pd_to_json(
     df: pd.DataFrame,
     output_file: Union[IO, str],
     schema: Union[pa.Schema, None] = None,
-    index=False,
     orient="records",
     lines=True,
     indent=4,
@@ -85,4 +103,6 @@ def pd_to_json(
     else:
         new = df
 
-    new.to_json(output_file, index, orient, lines, indent, **kwargs)
+    new.to_json(
+        output_file, orient=orient, lines=lines, indent=indent, **kwargs
+    )
